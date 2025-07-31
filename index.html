@@ -950,9 +950,10 @@
                 });
 
                 if (!response.ok) {
-                    const errorBody = await response.text();
-                    console.error("API Error Response:", errorBody);
-                    throw new Error(`APIエラー: ${response.status} ${response.statusText}`);
+                    const errorBody = await response.json().catch(() => response.text());
+                    console.error("API HTTP Error Response:", errorBody);
+                    let detail = (errorBody && errorBody.error && errorBody.error.message) ? errorBody.error.message : `HTTPステータス: ${response.status}`;
+                    throw new Error(`APIサーバーとの通信に失敗しました。(${detail})`);
                 }
 
                 const result = await response.json();
@@ -964,11 +965,24 @@
                     resultElement.innerHTML = text.replace(/\n/g, '<br>');
                 } else {
                     console.warn("API Response blocked or empty:", JSON.stringify(result));
-                    resultElement.innerText = 'AIが応答を生成できませんでした。プロンプトの内容を確認して、再度お試しください。';
+                    let reason = "不明な理由";
+                    if (result.candidates && result.candidates[0] && result.candidates[0].finishReason) {
+                        reason = `理由: ${result.candidates[0].finishReason}`;
+                        if(result.candidates[0].safetyRatings) {
+                             reason += ` (セーフティ設定によるブロックの可能性)`;
+                        }
+                    }
+                    resultElement.innerText = `AIが応答を生成できませんでした。(${reason}) プロンプトの内容を変更して再度お試しください。`;
                 }
             } catch (error) {
                 console.error("Gemini API Call Failed:", error);
-                resultElement.innerText = 'AIとの通信中にエラーが発生しました。時間をおいて再度お試しください。';
+                let errorMessage = 'AIとの通信中にエラーが発生しました。';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage += 'ネットワーク接続、またはブラウザのセキュリティポリシー（CSP等）が原因の可能性があります。';
+                } else {
+                    errorMessage += `[詳細: ${error.message}]`;
+                }
+                resultElement.innerText = errorMessage;
             } finally {
                 buttonElement.disabled = false;
             }
