@@ -426,7 +426,7 @@
             {
                 id: 5,
                 title: "ケーススタディ：失敗と複雑な事例から学ぶ",
-                icon: "📚",
+                icon: "�",
                 content: `
                     <div class="content-card">
                         <h2 class="text-2xl font-bold mb-2 text-slate-900">第5回：ケーススタディ・ワークショップ：失敗と複雑な事例から学ぶ</h2>
@@ -914,7 +914,18 @@
             resultElement.innerHTML = '<div class="loading-spinner"></div>';
             buttonElement.disabled = true;
 
-            const apiKey = ""; 
+            // --- ▼▼▼ 重要 ▼▼▼ ---
+            // Webページとして利用する場合は、ご自身のGoogle AI Studio APIキーをここに設定してください。
+            // 取得先: https://aistudio.google.com/app/apikey
+            const apiKey = "AIzaSyBvrBo6bKYoVG1ajx4caE2qA3XVtM9tnmw"; // ← このダブルクォーテーションの間に、取得したAPIキーを貼り付けてください。
+            // --- ▲▲▲ 重要 ▲▲▲ ---
+
+            if (apiKey === "" && typeof __initial_auth_token === 'undefined') {
+                resultElement.innerText = 'エラー: APIキーが設定されていません。コード内の指示に従って、ご自身のAPIキーを設定してください。';
+                buttonElement.disabled = false;
+                return;
+            }
+
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             const payload = {
@@ -1436,3 +1447,4 @@
     </script>
 </body>
 </html>
+�
